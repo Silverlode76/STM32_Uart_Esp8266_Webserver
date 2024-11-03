@@ -14,6 +14,10 @@
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 
+Led_state Led1;
+Led_state Led2;
+
+
 #define wifi_uart &huart1
 #define pc_uart &huart3
 
@@ -21,22 +25,33 @@ extern UART_HandleTypeDef huart3;
 char buffer[20];
 
 
-char *Basic_inclusion = "<!DOCTYPE html> <html>\n<head><meta name=\"viewport\"\
-		content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n\
-		<title>LED CONTROL</title>\n<style>html { font-family: Helvetica; \
-		display: inline-block; margin: 0px auto; text-align: center;}\n\
-		body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto 30px;}\
-		h3 {color: #444444;margin-bottom: 50px;}\n.button {display: block;\
-		width: 80px;background-color: #1abc9c;border: none;color: white;\
-		padding: 13px 30px;text-decoration: none;font-size: 25px;\
-		margin: 0px auto 35px;cursor: pointer;border-radius: 4px;}\n\
-		.button-on {background-color: #1abc9c;}\n.button-on:active \
-		{background-color: #16a085;}\n.button-off {background-color: #34495e;}\n\
-		.button-off:active {background-color: #2c3e50;}\np {font-size: 14px;color: #888;margin-bottom: 10px;}\n\
-		</style>\n</head>\n<body>\n<h1>ESP8266 LED CONTROL</h1>\n";
+char *Basic_inclusion = "<!DOCTYPE html><html><meta name=\"viewport\"\
+		content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n \
+	<title>LED CONTROL</title>\n \
+<style>html { font-family: Helvetica; 		display: inline-block; margin: 0px auto; text-align: center;} \
+		body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto 30px;}		h3 {color: #444444;margin-bottom: 50px;} \
+.button {display: block;\
+width: 80px;background-color: #1abc9c;border: none;color: white;\		
+padding: 13px 30px;text-decoration: none;font-size: 25px;	\
+margin: 0px auto 35px;cursor: pointer;border-radius: 4px;}\
+.button1-on {background-color: #1abc9c;\
+.button2-on {background-color: #1abc9c;}\n \
+.button1-on:active 		{background-color: #16a085;} \n \
+.button1-off {background-color: #34495e;} \n \
+.button1-off:active {background-color: #2c3e50;} \n \
+.button2-on:active 		{background-color: #16a085;} \n \
+.button2-off {background-color: #34495e;} \n \
+.button2-off:active {background-color: #2c3e50;} \n \
+p {font-size: 14px;color: #888;margin-bottom: 10px;} \n \
+</style> \n \
+</head> \n \
+<body>\n \
+<h1>ESP8266 LED CONTROL</h1>\n";
 
-char *LED_ON = "<p>LED Status: ON</p><a class=\"button button-off\" href=\"/ledoff\">OFF</a>";
-char *LED_OFF = "<p>LED1 Status: OFF</p><a class=\"button button-on\" href=\"/ledon\">ON</a>";
+char *LED1_ON = "<p>LED1 Status: ON</p><a class=\"button button-off\" href=\"/led1off\">OFF</a>";
+char *LED1_OFF = "<p>LED1 Status: OFF</p><a class=\"button button-on\" href=\"/led1on\">ON</a>";
+char *LED2_ON = "<p>LED2 Status: ON</p><a class=\"button button-off\" href=\"/led2off\">OFF</a>";
+char *LED2_OFF = "<p>LED2 Status: OFF</p><a class=\"button button-on\" href=\"/led2on\">ON</a>";
 char *Terminate = "</body></html>";
 
 
@@ -134,27 +149,50 @@ int Server_Send (char *str, int Link_ID)
 
 void Server_Handle (char *str, int Link_ID)
 {
-	char datatosend[1024] = {0};
-	if (!(strcmp (str, "/ledon")))
+	char datatosend[2048] = {0};
+	if (!(strcmp (str, "/led1on")))
 	{
 		sprintf (datatosend, Basic_inclusion);
-		strcat(datatosend, LED_ON);
+		strcat(datatosend, LED1_ON);
+		if(Led2.off == 1) strcat(datatosend, LED2_OFF);
+		else strcat(datatosend, LED2_ON);
 		strcat(datatosend, Terminate);
 		Server_Send(datatosend, Link_ID);
 	}
 
-	else if (!(strcmp (str, "/ledoff")))
+	else if (!(strcmp (str, "/led1off")))
 	{
 		sprintf (datatosend, Basic_inclusion);
-		strcat(datatosend, LED_OFF);
+		strcat(datatosend, LED1_OFF);
+		if(Led2.off == 1) strcat(datatosend, LED2_OFF);
+		else strcat(datatosend, LED2_ON);
+		strcat(datatosend, Terminate);
+		Server_Send(datatosend, Link_ID);
+	}
+	else if (!(strcmp (str, "/led2on")))
+	{
+		sprintf (datatosend, Basic_inclusion);
+		if(Led1.off == 1) strcat(datatosend, LED1_OFF);
+		else strcat(datatosend, LED1_ON);
+		strcat(datatosend, LED2_ON);
 		strcat(datatosend, Terminate);
 		Server_Send(datatosend, Link_ID);
 	}
 
+	else if (!(strcmp (str, "/led2off")))
+	{
+		sprintf (datatosend, Basic_inclusion);
+		if(Led1.off == 1) strcat(datatosend, LED1_OFF);
+		else strcat(datatosend, LED1_ON);
+		strcat(datatosend, LED2_OFF);
+		strcat(datatosend, Terminate);
+		Server_Send(datatosend, Link_ID);
+	}
 	else
 	{
 		sprintf (datatosend, Basic_inclusion);
-		strcat(datatosend, LED_OFF);
+		strcat(datatosend, LED1_OFF);
+		strcat(datatosend, LED2_OFF);
 		strcat(datatosend, Terminate);
 		Server_Send(datatosend, Link_ID);
 	}
@@ -163,23 +201,38 @@ void Server_Handle (char *str, int Link_ID)
 
 void Server_Start (void)
 {
-	char buftocopyinto[64] = {0};
+	char buftocopyinto[128] = {0};
 	char Link_ID;
 	while (!(Get_after("+IPD,", 1, &Link_ID, wifi_uart)));
 
 	Link_ID -= 48;
 	while (!(Copy_upto(" HTTP/1.1", buftocopyinto, wifi_uart)));
 	Uart_sendstring(buftocopyinto, pc_uart);
-	if (Look_for("/ledon", buftocopyinto) == 1)
+	if (Look_for("/led1on", buftocopyinto) == 1)
 	{
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-		Server_Handle("/ledon",Link_ID);
+		Led1.off = 0x0;
+		Server_Handle("/led1on",Link_ID);
 	}
 
-	else if (Look_for("/ledoff", buftocopyinto) == 1)
+	else if (Look_for("/led1off", buftocopyinto) == 1)
 	{
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-		Server_Handle("/ledoff",Link_ID);
+		Led1.off = 0x1;
+		Server_Handle("/led1off",Link_ID);
+	}
+	else if (Look_for("/led2on", buftocopyinto) == 1)
+	{
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);
+		Led2.off = 0x0;
+		Server_Handle("/led2on",Link_ID);
+	}
+
+	else if (Look_for("/led2off", buftocopyinto) == 1)
+	{
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
+		Led2.off = 0x1;
+		Server_Handle("/led2off",Link_ID);
 	}
 
 	else if (Look_for("/favicon.ico", buftocopyinto) == 1);
@@ -187,6 +240,9 @@ void Server_Start (void)
 	else
 	{
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
+		Led1.off = 0x1;
+		Led2.off = 0x1;
 		Server_Handle("/ ", Link_ID);
 	}
 }

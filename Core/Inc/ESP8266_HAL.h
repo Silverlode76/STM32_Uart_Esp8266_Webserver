@@ -8,6 +8,10 @@
 #ifndef INC_ESP8266_HAL_H_
 #define INC_ESP8266_HAL_H_
 
+typedef struct
+{
+  unsigned char off;
+} Led_state;
 
 void ESP_Init (char *SSID, char *PASSWD);
 

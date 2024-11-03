@@ -24,7 +24,7 @@ Configuration:
 
 - UART3 goes to WiFI
 - UART1 goe to PC
-- For both UARTS we use ASYNCHONOUS and global Interrupt enable. Bausrate is set to 115200 Bauds
+- For both UARTS we use ASYNCHONOUS and global Interrupt enable. Baudrate is set to 115200 Bauds
 
 ![image](https://github.com/user-attachments/assets/197156ff-af20-4413-a41e-278537edf550)
 
@@ -42,7 +42,7 @@ Functions:
 
 ![image](https://github.com/user-attachments/assets/ced4dc5c-10d9-479e-922f-75540cbb6b1b)
 
-- in "main.c" function ESP_Init() is trying to access your WLAN-AP. YOu have to put here your W-Lan and Passwd
+- in "main.c" function ESP_Init() is trying to access your WLAN-AP. You have to put here your W-Lan and Passwd
 
 ![image](https://github.com/user-attachments/assets/ba7bd416-bc44-449e-a6b9-7ffa3caebe2b)
 
